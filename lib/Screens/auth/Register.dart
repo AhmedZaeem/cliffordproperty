@@ -37,11 +37,11 @@ class _RegisterState extends State<Register> with Nav_Helper {
     _passwordController = TextEditingController();
   }
 
-  late Country _selectedCountry;
+  late Country? _selectedCountry;
   void initCountry() async {
-    final country = await getDefaultCountry(context);
+    final country = await getCountries(context);
     setState(() {
-      _selectedCountry = country;
+      _selectedCountry = country.first;
     });
   }
 
@@ -162,12 +162,14 @@ class _RegisterState extends State<Register> with Nav_Helper {
                                   clipBehavior: Clip.antiAlias,
                                   padding:
                                       EdgeInsets.symmetric(horizontal: 8.w),
-                                  child: CircleFlag(
-                                    _selectedCountry.countryCode,
-                                    size: 32.w,
-                                  ),
+                                  child: _selectedCountry == null
+                                      ? Container()
+                                      : CircleFlag(
+                                          _selectedCountry!.countryCode,
+                                          size: 32.w,
+                                        ),
                                 ),
-                                Text(_selectedCountry.callingCode),
+                                Text(_selectedCountry?.callingCode ?? '+93'),
                                 const Icon(Icons.keyboard_arrow_down),
                               ],
                             ),
@@ -196,6 +198,7 @@ class _RegisterState extends State<Register> with Nav_Helper {
                       prefix: 'password_icon',
                       hint: appLocale.passwordHint,
                       controller: _passwordController,
+                      maxLines: 1,
                       validator: (value) {
                         if (value == null ||
                             value.isEmpty ||

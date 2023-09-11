@@ -75,6 +75,7 @@ class _ResetPasswordState extends State<ResetPassword> with Nav_Helper {
                   hint: appLocale.passwordHint,
                   controller: _passwordController,
                   isObscure: !passwordIsShown,
+                  maxLines: 1,
                   onChange: (value) {
                     if (value.isEmpty || value.length < 6) {
                       setState(() {

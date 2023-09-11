@@ -104,6 +104,7 @@ class _LoginState extends State<Login> with Nav_Helper {
                       MyTextFormField(
                         prefix: 'password_icon',
                         hint: appLocale.passwordHint,
+                        maxLines: 1,
                         controller: _passwordController,
                         validator: (value) {
                           if (value == null ||
