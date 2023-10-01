@@ -74,5 +74,6 @@
  "propertySize" : "Property size",
  "showProperties" : "Show Properties",
  "messages" : "Messages",
- "typeAMessage" : "type a message..."
+ "typeAMessage" : "type a message...",
+ "logOut": "Log out"
 }

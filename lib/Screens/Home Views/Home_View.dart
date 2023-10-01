@@ -43,18 +43,31 @@ class _HomeViewState extends State<HomeView> with Nav_Helper {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.menu, size: 32.w),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                ),
+               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center ,
+              children: [
+                // IconButton(
+                //   icon: Icon(Icons.menu, size: 32.w),
+                //   onPressed: () {
+                //     Scaffold.of(context).openDrawer();
+                //   },
+                // ),
+                InkWell(
+                    child: Icon(Icons.menu,size: 32.w),
+                onTap: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                 ),
                 Image.asset('assets/images/logo.png', height: 64.h),
-                IconButton(
-                  icon: Icon(Icons.notifications_none_rounded, size: 32.w),
-                  onPressed: () {
+                // IconButton(
+                //   icon: Icon(Icons.notifications_none_rounded, size: 32.w),
+                //   onPressed: () {
+                //     jump(context, const NotificationsScreen());
+                //   },
+                // ),
+                InkWell(
+                  child: Icon(Icons.notifications_none_rounded,size: 32.w),
+                  onTap: () {
                     jump(context, const NotificationsScreen());
                   },
                 ),

@@ -1,7 +1,10 @@
 import 'package:cliffordproperty/Helpers/Nav_Helper.dart';
 import 'package:cliffordproperty/Models/OnBoardingModel.dart';
+import 'package:cliffordproperty/Screens/HomeScreen.dart';
 import 'package:cliffordproperty/Screens/auth/Login.dart';
 import 'package:cliffordproperty/Widgets/My_Button.dart';
+import 'package:cliffordproperty/cache/cache_controller.dart';
+import 'package:cliffordproperty/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,7 +26,8 @@ class _OnBoardingState extends State<OnBoarding> with Nav_Helper {
     _controller = PageController();
   }
 
-  int selectedPage = 0;
+
+    int selectedPage = 0;
   @override
   Widget build(BuildContext context) {
     List<OnBoardingModel> screens = [
@@ -40,6 +44,7 @@ class _OnBoardingState extends State<OnBoarding> with Nav_Helper {
           title: appLocale.boardingTitle3,
           subTitle: appLocale.boardingSub3),
     ];
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -48,9 +53,10 @@ class _OnBoardingState extends State<OnBoarding> with Nav_Helper {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: GestureDetector(
-              onTap: () {
-                jump(context, const Login(), replace: true);
-              },
+              onTap: () async {
+                  bool loggedIn = CacheController().getter(CacheKeys.loggedIn) ?? false;
+                  jump(context,  loggedIn ? const HomeScreen() : const Login(), replace: true);
+                  },
               child: Text('Skip',
                   style: TextStyle(
                     color: const Color(0xffB1B1B1),
@@ -136,7 +142,8 @@ class _OnBoardingState extends State<OnBoarding> with Nav_Helper {
               buttonText: appLocale.start,
               onTap: () {
                 if (selectedPage == 2) {
-                  jump(context, const Login(), replace: true);
+                  bool loggedIn = CacheController().getter(CacheKeys.loggedIn) ?? false;
+                  jump(context,  loggedIn ? const Login() : const HomeScreen(), replace: true);
                 } else {
                   setState(() {
                     _controller.nextPage(

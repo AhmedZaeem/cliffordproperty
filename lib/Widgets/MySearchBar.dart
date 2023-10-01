@@ -13,6 +13,7 @@ class MySearchBar extends StatefulWidget {
   final Function(String value)? onSubmit;
   final bool hasTrailing;
   final bool hasPadding;
+
   const MySearchBar(
       {this.hasTrailing = true,
       this.hasPadding = false,

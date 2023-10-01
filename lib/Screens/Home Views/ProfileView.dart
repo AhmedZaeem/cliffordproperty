@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cliffordproperty/Helpers/pickers_helper.dart';
+import 'package:cliffordproperty/Models/user_model.dart';
 import 'package:cliffordproperty/Widgets/LoadingWidget.dart';
 import 'package:cliffordproperty/Widgets/MyTextFormFiled.dart';
 import 'package:cliffordproperty/Widgets/My_Button.dart';
+import 'package:cliffordproperty/firebase/fb_storage_controller.dart';
+import 'package:cliffordproperty/firebase/users_fb_controller.dart';
+import 'package:cliffordproperty/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class ProfileView extends StatefulWidget {
   final bool cameFromDrawer;
@@ -14,8 +22,10 @@ class ProfileView extends StatefulWidget {
   State<ProfileView> createState() => _ProfileViewState();
 }
 
-class _ProfileViewState extends State<ProfileView> {
+class _ProfileViewState extends State<ProfileView> with PickersHelper {
   AppLocalizations get appLocale => AppLocalizations.of(context)!;
+  AuthProvider get _auth => Provider.of<AuthProvider>(context, listen: false);
+
   final _key = GlobalKey<FormState>();
   late TextEditingController _emailController;
   late TextEditingController _nameController;
@@ -24,10 +34,10 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController(text: 'a@a.com');
-    _nameController = TextEditingController(text: 'Ahmed');
-    _telephoneController = TextEditingController(text: '123456789');
-    _cityController = TextEditingController(text: 'Gaza');
+    _emailController = TextEditingController(text: _auth.user?.email ?? '');
+    _nameController = TextEditingController(text: _auth.user?.name ?? '');
+    _telephoneController = TextEditingController(text: _auth.user?.phone ?? '');
+    _cityController = TextEditingController(text: _auth.user?.City ?? '');
   }
 
   @override
@@ -40,6 +50,8 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   bool loading = false;
+  File? profileImage;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,16 +86,32 @@ class _ProfileViewState extends State<ProfileView> {
                   Stack(
                     children: [
                       Center(
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: 18.h),
-                          width: 120.w,
-                          clipBehavior: Clip.antiAlias,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
+                        child: InkWell(
+                          onTap: () async {
+                            var file = await pickImage();
+                            if (file != null) {
+                              setState(() => profileImage = file);
+                            }
+                          },
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: 18.h),
+                            width: 120.w,
+                            clipBehavior: Clip.antiAlias,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child:profileImage != null
+                                ? Image.file(
+                              profileImage!,
+                              fit: BoxFit.cover,
+                            )
+                                : _auth.user?.image != null
+                                ? CachedNetworkImage(
+                              imageUrl: _auth.user?.image ?? '',
+                              fit: BoxFit.cover,
+                            ): CachedNetworkImage(
+                                imageUrl: 'https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1985&q=80'),
                           ),
-                          child: CachedNetworkImage(
-                              imageUrl:
-                                  'https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1985&q=80'),
                         ),
                       ),
                       PositionedDirectional(
@@ -179,7 +207,7 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-                  My_Button(buttonText: appLocale.save, onTap: _preformAction),
+                  My_Button(buttonText: appLocale.save, onTap:() async => _performUpdate),
                   SizedBox(height: 46.h),
                 ],
               ),
@@ -195,15 +223,46 @@ class _ProfileViewState extends State<ProfileView> {
   TextStyle get _labelStyle =>
       TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600);
 
-  _preformAction() {
-    if (_key.currentState!.validate()) {
-      setState(() {
-        loading = true;
-      });
-      Future.delayed(
-              const Duration(seconds: 2), () => setState(() => loading = false))
-          .then(
-              (value) => widget.cameFromDrawer ? Navigator.pop(context) : null);
+
+  Future<void> get _performUpdate async {
+    if (_checkDate) {
+      await _update;
     }
+  }
+
+  Future<void> get _update async {
+    setState(() => loading = true);
+    try {
+      /// Storage
+      var imageModel = await FbStorageController()
+          .uploadFile(profileImage, path: 'users/${_auth.user?.id}');
+
+      /// Firestore
+      var status = await UsersFbController().update(userModel(imageModel));
+     // var statu = await UsersFbController().read();
+      _auth.user = userModel(imageModel);
+
+      if (context.mounted && status) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      ///
+    }
+    setState(() => loading = false);
+  }
+
+  UserModel userModel(String? imageModel) {
+    return UserModel(
+      email: _emailController.text,
+      name: _nameController.text,
+      fcm: _auth.user?.fcm,
+      id: _auth.user?.id,
+      phone: _telephoneController.text,
+      City: _cityController.text,
+      image: imageModel,
+    );
+  }
+  bool get _checkDate {
+    return true;
   }
 }
